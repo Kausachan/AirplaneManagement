@@ -1,4 +1,7 @@
-function msToTime(duration) {
+
+// utility functions
+
+function msToTime(duration){
     var milliseconds = Math.floor((duration % 1000) / 100),
       seconds = Math.floor((duration / 1000) % 60),
       minutes = Math.floor((duration / (1000 * 60)) % 60),
@@ -9,7 +12,9 @@ function msToTime(duration) {
     seconds = (seconds < 10) ? "0" + seconds : seconds;
   
     return hours + ":" + minutes + ":" + seconds + "." + milliseconds;
-  }
+}
+
+// entities and modules  
 
 class Payment{
     constructor(){
@@ -47,21 +52,7 @@ class Airplane extends Payment{
         this.flightDuration = Number.parseInt(msToTime(Math.abs(departTime - arriveTime)))
         this.invoice = this.flightPayment(source, destination, this.flightDuration)
     }
-    bookSeat(requiredSeats, classType){
-        if(classType === 'ECO' && (this.ECO_seatsFilled + requiredSeats) <= this.ECO_capacity)
-        {
-            this.ECO_seatsFilled += requiredSeats
-            return true
-        } 
-        else if(classType === 'BUS' && (this.BUS_seatsFilled + requiredSeats) <= this.BUS_capacity){
-            this.BUS_seatsFilled += requiredSeats
-            return true
-        } 
-        return false    
-    }
 }
-
-
 
 class Airport{
     constructor(runway, location, flights){
@@ -70,39 +61,94 @@ class Airport{
         for(let i = 1; i <= runway ; i++){
             this.runway[i] = true
         }    
-        this.flights = [...flights]
+        this.flights = JSON.parse(JSON.stringify(flights))
     }
 }
 
-const flight1 = new Airplane('chennai', 'bangalore', 'CH_BNG_1', 75, 25, (new Date()), (new Date('2022', '12', '14', '5', '0')))
-const chennai_airport = new Airport(3, 'chennai', [flight1])
-console.log('Rs. ' + flight1.invoice)
+// flight creation
 
+const CH_bangalore_flight1 = new Airplane('chennai', 'bangalore', 'CH_BNG_1', 75, 25, (new Date()), (new Date('2022', '12', '14', '5', '0')))
+const BNG_chennai_flight1 = new Airplane('bangalore', 'chennai', 'BNG_CH_1', 75, 25, (new Date()), (new Date('2022', '12', '14', '6', '15')))
+const CH_delhi_flight1 = new Airplane('chennai', 'delhi', 'CH_DEL_1', 75, 25, (new Date()), (new Date('2022', '12', '14', '6', '15')))
 
-// payment{
-//     flightPayment()
-//     foodPayment()
-// }
+// airport creation
 
-// passenger{
-//     name,
-//     source,
-//     destination
-// }
+const chennai_airport = new Airport(1, 'chennai', [
+    {
+        bangalore : [CH_bangalore_flight1]
+    },
+    {
+        delhi : [CH_delhi_flight1]
+    }
+])
+const bangalore_airport = new Airport(2, 'bangalore', [BNG_chennai_flight1])
 
-// flight extends payment{
-//     source,
-//     destination,
-//     name,
-//     capacity,
-//     seatsFilled
-// }
+// airports list
 
-// airport extends payment{
-//     flightList : [new flight],
-//     location
-// }
+const airport_list = {
+    chennai : chennai_airport, 
+    bangalore : bangalore_airport
+}
 
-// new passenger(name, source, destination, requiredSeats)
+class Passenger{
+    constructor(name){
+        this.name = name
+        this.ticket = false
+    }
+    bookTicket(source, destination, classType, requiredSeats){
+        const airport = airport_list[source]
+        let flight = null
+        let flight_list = airport.flights
+        for(let i = 0 ; i < flight_list.length ; i++){
+            if(flight_list[i][destination]){
+                flight_list = flight_list[i][destination]
+                break
+            }
+        }
+        if(classType === 'ECO')
+        {
+            for(let i = 0 ; i < flight_list.length ; i++){  // Assigning flight to the passenger
+                if(flight_list[i].ECO_capacity >= (flight_list[i].ECO_seatsFilled + requiredSeats)){
+                    flight = flight_list[i]         
+                    this.ticket = true  
+                    return ('Rs. ' + flight.invoice)
+                }
+            }
+        }
+        else{
+            for(let i = 0 ; i < flight_list ; i++){
+                if((flight_list[i].BUS_capacity >= (flight_list[i].BUS_seatsFilled + requiredSeats))){
+                    flight = flight_list[i]
+                    this.ticket = true
+                    return ('Rs. ' + flight.invoice)
+                }
+            }
+        }
+        return 'No Tickets Available'
+    }
+    fly(from){
+        const airport = airport_list[from]
+        if(this.ticket === true){
+            for(let i in airport.runway){
+                if(airport.runway[i] === true){
+                    airport.runway[i] = false 
+                    setTimeout(() => console.log("You're flying"), 2000) 
+                    return
+                }
+            }
+            console.log(() => console.log('No runways available'), 2000) 
+            return 
+        }
+        else console.log('Cannot fly without a ticket')
+    }
+}
 
+// passengers
 
+const passenger1 = new Passenger('kaushik')
+console.log(passenger1.bookTicket('chennai', 'bangalore', 'ECO', 3))
+console.log('Ticket successful')
+const passenger3 = new Passenger('nobita')
+console.log(passenger3.bookTicket('chennai', 'delhi', 'ECO', 6))
+console.log('Ticket successful')
+passenger3.fly('chennai')
