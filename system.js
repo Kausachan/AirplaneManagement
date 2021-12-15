@@ -132,7 +132,13 @@ class Passenger{
             for(let i in airport.runway){
                 if(airport.runway[i] === true){
                     airport.runway[i] = false 
-                    setTimeout(() => console.log("You're flying"), 2000) 
+                    setTimeout(() => console.log(this.name + "'s flight started at runway " + i))
+                    setTimeout(() => console.log(this.name + " is flying" ), 2000) 
+                    setTimeout(() => console.log(this.name + " has landed"), 4000)
+                    setTimeout(() =>{
+                        airport.runway[i] = true
+                        console.log("runway " + i + " is free now")
+                    }, 3000)
                     return
                 }
             }
@@ -145,10 +151,11 @@ class Passenger{
 
 // passengers
 
-const passenger1 = new Passenger('kaushik')
-console.log(passenger1.bookTicket('chennai', 'bangalore', 'ECO', 3))
-console.log('Ticket successful')
-const passenger3 = new Passenger('nobita')
+// const passenger1 = new Passenger('kaushik')
+// console.log(passenger1.bookTicket('chennai', 'bangalore', 'ECO', 3))
+// console.log('Ticket successful')
+// passenger1.fly('chennai')
+const passenger3 = new Passenger('bheem')
 console.log(passenger3.bookTicket('chennai', 'delhi', 'ECO', 6))
 console.log('Ticket successful')
 passenger3.fly('chennai')
